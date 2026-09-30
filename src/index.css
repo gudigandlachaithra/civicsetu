@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme {
+  --color-civic-blue: #0A3D91;
+  --color-civic-blue-light: #1B5BBF;
+  --color-civic-blue-dark: #062A66;
+  --color-saffron: #FF9933;
+  --color-saffron-light: #FFB366;
+  --color-saffron-dark: #E67300;
+}
+
+:root {
+  --civic-blue: #0A3D91;
+  --civic-blue-light: #1B5BBF;
+  --civic-blue-dark: #062A66;
+  --saffron: #FF9933;
+  --saffron-light: #FFB366;
+  --saffron-dark: #E67300;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  .btn-primary {
+    @apply bg-[#0A3D91] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:bg-[#062A66] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-saffron {
+    @apply bg-[#FF9933] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:bg-[#E67300] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply border-2 border-[#0A3D91] text-[#0A3D91] font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:bg-[#0A3D91] hover:text-white active:scale-[0.98];
+  }
+
+  .input-field {
+    @apply w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base transition-colors focus:border-[#0A3D91] focus:outline-none;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-5;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 text-amber-700;
+  }
+
+  .badge-info {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  .badge-error {
+    @apply bg-red-100 text-red-700;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
