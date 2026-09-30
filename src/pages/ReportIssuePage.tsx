@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import type { IssueCategory } from '@/types';
-import { ArrowLeft, Send, Check, AlertCircle, Copy, Camera, MapPin, X, Users, Loader2, Mic, Sparkles } from 'lucide-react';
+import { ArrowLeft, Send, Check, AlertCircle, Copy, Camera, MapPin, X, Users, Loader2, Mic, Sparkles, ExternalLink } from 'lucide-react';
 
 type Page = 'login' | 'onboarding' | 'schemes' | 'schemeDetail' | 'reportIssue' | 'myIssues' | 'officialDashboard' | 'notifications' | 'editProfile';
 
@@ -182,28 +182,74 @@ export function ReportIssuePage({ navigate }: Props) {
     setPhotoPreview(null);
   };
 
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const addr = data.address || {};
+        const districtName = addr.state_district || addr.county || addr.city_district || addr.city || '';
+        const areaName = addr.suburb || addr.neighbourhood || addr.residential || addr.village || addr.town || addr.road || '';
+        const landmarkName = addr.amenity || addr.building || addr.road || '';
+
+        setFormData((prev) => ({
+          ...prev,
+          district: prev.district || districtName,
+          area: prev.area || areaName,
+          landmark: prev.landmark || landmarkName,
+        }));
+      }
+    } catch (e) {
+      console.warn('Reverse geocoding failed:', e);
+    }
+  };
+
   const handleUseLocation = () => {
     setLocating(true);
     setError(null);
+
     if (!navigator.geolocation) {
       setError(t('issues.locationError'));
       setLocating(false);
       return;
     }
+
+    const onSuccess = (position: GeolocationPosition) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      setCoords({ lat, lng });
+      setLocationFound(true);
+      setLocating(false);
+      reverseGeocode(lat, lng);
+    };
+
+    const onErrorFallback = (err?: GeolocationPositionError) => {
+      // If high accuracy fails or times out, try standard accuracy
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        (finalErr) => {
+          let msg = t('issues.locationError');
+          if (finalErr.code === 1) {
+            msg = 'Location permission denied. Please allow location access in your browser settings.';
+          } else if (finalErr.code === 2) {
+            msg = 'Location unavailable. Please check device GPS or network.';
+          } else if (finalErr.code === 3) {
+            msg = 'Location request timed out. Please enter manually.';
+          }
+          setError(msg);
+          setLocating(false);
+        },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+      );
+    };
+
+    // Try high accuracy first
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCoords({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-        setLocationFound(true);
-        setLocating(false);
-      },
-      () => {
-        setError(t('issues.locationError'));
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
+      onSuccess,
+      onErrorFallback,
+      { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
     );
   };
 
@@ -625,6 +671,26 @@ export function ReportIssuePage({ navigate }: Props) {
                 </>
               )}
             </button>
+
+            {coords && (
+              <div className="mb-3 p-2.5 bg-green-50 border border-green-200 rounded-xl flex items-center justify-between text-xs text-green-800">
+                <div className="flex items-center gap-1.5 font-mono">
+                  <MapPin className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                  <span>
+                    {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
+                  </span>
+                </div>
+                <a
+                  href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 font-medium text-[#0A3D91] hover:underline"
+                >
+                  View on Map
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            )}
 
             {/* Manual location fields (always visible) */}
             <div className="space-y-4">
